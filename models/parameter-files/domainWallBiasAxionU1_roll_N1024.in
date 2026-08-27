@@ -1,0 +1,56 @@
+#Output
+outputfile = ./
+print_headers = true
+overwriteFiles = false
+
+#Evolution
+expansion = true
+fixedBackground = true
+omegaEoS = 0.333333333333333333
+evolver = RK2
+
+#Lattice
+N = 1024
+dt = 0.00125
+lSide = 32
+
+#Times
+tOutputFreq = 0.5
+tOutputInfreq = 1
+tOutputRareFreq = 5
+t0 = 1
+tMax = 80
+
+#Spectra options
+PS_type = 1
+PS_version = 1
+flagChiralPS = true
+
+#GW options
+withGWs = false
+GWprojectorType = 1
+
+#Defect observables
+measureDefectsStructure = true
+measureDefectsEnergies = true
+
+#IC: tachyonic roll from the top of the biased double-well potential.
+ICtype_S = RandomWithMatter
+ICtype_U1 = BunchDavisElectricU1
+kCutOff = 30
+initial_amplitudes = 0
+initial_momenta = 0
+
+#No diffusion: walls should form dynamically during real-time evolution.
+doDiffusion = false
+doResolutionPreserving = false
+
+#Axion U1 coupling
+alphaLambda_AxionU1 = 13
+tNonLinearAxionU1 = -1
+initial_E_amplitude = 1
+
+#Model Parameters
+lambda = 1
+vev = 1
+qbias = 0.001

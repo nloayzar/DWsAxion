@@ -29,6 +29,7 @@ namespace TempLat
       PlaneWaves,
       PlaneWavesZeroB,
       BunchDavisTransverseU1,
+      BunchDavisElectricU1,
       DefectsNetwork,
       DefectsWhiteNoise
     };
@@ -67,9 +68,11 @@ namespace TempLat
         ICType = InitialConditionsType::U1::PlaneWavesZeroB;
       else if (tmp == "BunchDavisTransverseU1" || tmp == "4")
         ICType = InitialConditionsType::U1::BunchDavisTransverseU1;
-      else if (tmp == "DefectsNetwork" || tmp == "5")
+      else if (tmp == "BunchDavisElectricU1" || tmp == "5")
+        ICType = InitialConditionsType::U1::BunchDavisElectricU1;
+      else if (tmp == "DefectsNetwork" || tmp == "6")
         ICType = InitialConditionsType::U1::DefectsNetwork;
-      else if (tmp == "DefectsWhiteNoise" || tmp == "6")
+      else if (tmp == "DefectsWhiteNoise" || tmp == "7")
         ICType = InitialConditionsType::U1::DefectsWhiteNoise;
       else if (tmp.empty()) {
       } else
@@ -104,6 +107,8 @@ namespace TempLat
         return out << "PlaneWavesZeroB";
       else if (ICType == InitialConditionsType::U1::BunchDavisTransverseU1)
         return out << "BunchDavisTransverseU1";
+      else if (ICType == InitialConditionsType::U1::BunchDavisElectricU1)
+        return out << "BunchDavisElectricU1";
       else if (ICType == InitialConditionsType::U1::DefectsNetwork)
         return out << "DefectsNetwork";
       else if (ICType == InitialConditionsType::U1::DefectsWhiteNoise)
@@ -139,6 +144,8 @@ namespace TempLat
         return "PlaneWaves";
       else if (ICType == InitialConditionsType::U1::BunchDavisTransverseU1)
         return "BunchDavisTransverseU1";
+      else if (ICType == InitialConditionsType::U1::BunchDavisElectricU1)
+        return "BunchDavisElectricU1";
       else if (ICType == InitialConditionsType::U1::DefectsNetwork)
         return "DefectsNetwork";
       else if (ICType == InitialConditionsType::U1::DefectsWhiteNoise)
