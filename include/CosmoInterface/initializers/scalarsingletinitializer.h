@@ -45,9 +45,8 @@ namespace TempLat
 
       auto flagSIC = rPar.SIC;
 
-      if (Model::DefectsModel && !allowsDefectFormationIC<Model>() &&
-          (flagSIC != InitialConditionsType::S::DefectsNetwork &&
-           flagSIC != InitialConditionsType::S::DefectsWhiteNoise))
+      if (Model::DefectsModel && (flagSIC != InitialConditionsType::S::DefectsNetwork &&
+                                  flagSIC != InitialConditionsType::S::DefectsWhiteNoise))
         throw(RunParametersInconsistent(
             "You are running a simulation with cosmic defects. Initial conditions specified via the ICtype_S must be "
             "either DefectsNetwork or WhiteNoise. We also recomment using an initial diffusion phase."));
@@ -78,14 +77,6 @@ namespace TempLat
     }
 
   private:
-    template <class Model> static constexpr bool allowsDefectFormationIC()
-    {
-      if constexpr (requires { Model::AllowDefectFormationIC; })
-        return Model::AllowDefectFormationIC;
-      else
-        return false;
-    }
-
     // @label:initializerandomscalar
     template <class Model, typename T>
     static void initializeRandomScalar(Model &model, const FluctuationsGenerator<T> &fg,

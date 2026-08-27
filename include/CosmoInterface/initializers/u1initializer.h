@@ -44,16 +44,13 @@ namespace TempLat
     {
       auto flagU1IC = rPar.U1IC;
 
-      if (rPar.U1IC == InitialConditionsType::U1::Default) flagU1IC = model.getU1IC();
-
       if (Model::DefectsModel && (flagU1IC != InitialConditionsType::U1::DefectsNetwork &&
-                                  flagU1IC != InitialConditionsType::U1::DefectsWhiteNoise &&
-                                  !(Model::IsAxionU1Coupled &&
-                                    flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1)))
+                                  flagU1IC != InitialConditionsType::U1::DefectsWhiteNoise))
         throw(RunParametersInconsistent(
             "You are running a simulation with cosmic defects. Initial conditions specified via the ICtype_U1 must be "
-            "DefectsNetwork, WhiteNoise, or BunchDavisElectricU1 for axion-U(1) models. We also recommend using an "
-            "initial diffusion phase."));
+            "either DefectsNetwork or WhiteNoise. We also recomment using an initial diffusion phase."));
+
+      if (rPar.U1IC == InitialConditionsType::U1::Default) flagU1IC = model.getU1IC();
 
       if (flagU1IC == InitialConditionsType::U1::RandomWithMatter)
         initializeRandomWithMatterU1(model, fg, rPar.kCutoff);
@@ -64,11 +61,6 @@ namespace TempLat
           throw(RunParametersInconsistent("You have selected BunchDavisTransverseU1 for the U(1) field, but this "
                                           "option is only included for models with Axion-U(1) couplings."));
         initializeBunchDavisTransverseU1(model, extps, rPar.kCutoff, extraFlds);
-      } else if (flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1) {
-        if (!Model::IsAxionU1Coupled)
-          throw(RunParametersInconsistent("You have selected BunchDavisElectricU1 for the U(1) field, but this "
-                                          "option is only included for models with Axion-U(1) couplings."));
-        initializeBunchDavisElectricU1(model, extps, rPar.kCutoff, extraFlds);
       } else if (flagU1IC == InitialConditionsType::U1::DefectsNetwork)
         initializeStringNetwork(model, fg, rPar.lcorr);
       else if (flagU1IC == InitialConditionsType::U1::DefectsWhiteNoise)
@@ -134,14 +126,6 @@ namespace TempLat
                                            extraFlds.piForPlaneWavesU1(), model.aDotI, kCutOff);
               model.fldU1(n) = model.getFluctuationRatio(FieldsNumbering::fldU1()) * model.fldU1(n);
               model.piU1(n) = model.getFluctuationRatio(FieldsNumbering::piU1()) * model.piU1(n););
-    }
-
-    template <class Model, typename T>
-    static void initializeBunchDavisElectricU1(Model &model, ExternalPowerSpectrumInitializer<T> &extps, T kCutOff,
-                                               ExtraFields<Model> extraFlds)
-    {
-      initializeBunchDavisTransverseU1(model, extps, kCutOff, extraFlds);
-      ForLoop(n, 0, Model::NU1 - 1, ForLoop(i, 1, Model::NDim, model.fldU1(n)(i) = 0;););
     }
 
     template <class Model, typename T>

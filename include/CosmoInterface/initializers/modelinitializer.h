@@ -65,14 +65,7 @@ namespace TempLat
       if constexpr (Model::NCs > 0 || Model::NU1 > 0) U1Initializer::initializeU1(model, fg, extps, rPar, extraFields);
 
       if constexpr (Model::DefectsModel) {
-        if (rPar.doDiffusion) {
-          Diffusion::diffuse(model, rPar, filesManager, extraFields);
-          if constexpr (Model::NU1 > 0) {
-            auto flagU1IC = rPar.U1IC == InitialConditionsType::U1::Default ? model.getU1IC() : rPar.U1IC;
-            if (flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1)
-              U1Initializer::initializeU1(model, fg, extps, rPar, extraFields);
-          }
-        }
+        if (rPar.doDiffusion) Diffusion::diffuse(model, rPar, filesManager, extraFields);
       }
 
       Averages::setAllAverages(model);
