@@ -31,7 +31,9 @@ namespace TempLat
       BunchDavisTransverseU1,
       BunchDavisElectricU1,
       DefectsNetwork,
-      DefectsWhiteNoise
+      DefectsWhiteNoise,
+      BunchDavisAxionConstrainedU1,
+      HelicalGaussProjectedU1
     };
 
     std::istream &operator>>(std::istream &in, InitialConditionsType::S &ICType)
@@ -70,6 +72,10 @@ namespace TempLat
         ICType = InitialConditionsType::U1::BunchDavisTransverseU1;
       else if (tmp == "BunchDavisElectricU1" || tmp == "5")
         ICType = InitialConditionsType::U1::BunchDavisElectricU1;
+      else if (tmp == "BunchDavisAxionConstrainedU1" || tmp == "8")
+        ICType = InitialConditionsType::U1::BunchDavisAxionConstrainedU1;
+      else if (tmp == "HelicalGaussProjectedU1" || tmp == "9")
+        ICType = InitialConditionsType::U1::HelicalGaussProjectedU1;
       else if (tmp == "DefectsNetwork" || tmp == "6")
         ICType = InitialConditionsType::U1::DefectsNetwork;
       else if (tmp == "DefectsWhiteNoise" || tmp == "7")
@@ -109,6 +115,10 @@ namespace TempLat
         return out << "BunchDavisTransverseU1";
       else if (ICType == InitialConditionsType::U1::BunchDavisElectricU1)
         return out << "BunchDavisElectricU1";
+      else if (ICType == InitialConditionsType::U1::BunchDavisAxionConstrainedU1)
+        return out << "BunchDavisAxionConstrainedU1";
+      else if (ICType == InitialConditionsType::U1::HelicalGaussProjectedU1)
+        return out << "HelicalGaussProjectedU1";
       else if (ICType == InitialConditionsType::U1::DefectsNetwork)
         return out << "DefectsNetwork";
       else if (ICType == InitialConditionsType::U1::DefectsWhiteNoise)
@@ -146,6 +156,10 @@ namespace TempLat
         return "BunchDavisTransverseU1";
       else if (ICType == InitialConditionsType::U1::BunchDavisElectricU1)
         return "BunchDavisElectricU1";
+      else if (ICType == InitialConditionsType::U1::BunchDavisAxionConstrainedU1)
+        return "BunchDavisAxionConstrainedU1";
+      else if (ICType == InitialConditionsType::U1::HelicalGaussProjectedU1)
+        return "HelicalGaussProjectedU1";
       else if (ICType == InitialConditionsType::U1::DefectsNetwork)
         return "DefectsNetwork";
       else if (ICType == InitialConditionsType::U1::DefectsWhiteNoise)

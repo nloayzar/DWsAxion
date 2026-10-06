@@ -16,6 +16,7 @@
 #include "TempLat/util/rangeiteration/sum_in_range.h"
 #include "CosmoInterface/initializers/fluctuationsgenerator.h"
 #include "CosmoInterface/definitions/mattercurrents.h"
+#include "CosmoInterface/definitions/axioncouplings.h"
 #include "CosmoInterface/definitions/averages.h"
 #include "CosmoInterface/definitions/potential.h"
 #include "CosmoInterface/initializers/initialconditionstype.h"
@@ -49,10 +50,14 @@ namespace TempLat
       if (Model::DefectsModel && (flagU1IC != InitialConditionsType::U1::DefectsNetwork &&
                                   flagU1IC != InitialConditionsType::U1::DefectsWhiteNoise &&
                                   !(Model::IsAxionU1Coupled &&
-                                    flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1)))
+                                    (flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1 ||
+                                     flagU1IC == InitialConditionsType::U1::BunchDavisAxionConstrainedU1 ||
+                                     flagU1IC == InitialConditionsType::U1::HelicalGaussProjectedU1))))
         throw(RunParametersInconsistent(
             "You are running a simulation with cosmic defects. Initial conditions specified via the ICtype_U1 must be "
-            "DefectsNetwork, WhiteNoise, or BunchDavisElectricU1 for axion-U(1) models. We also recommend using an "
+            "DefectsNetwork, WhiteNoise, BunchDavisElectricU1, BunchDavisAxionConstrainedU1, or "
+            "HelicalGaussProjectedU1 for axion-U(1) "
+            "models. We also recommend using an "
             "initial diffusion phase."));
 
       if (flagU1IC == InitialConditionsType::U1::RandomWithMatter)
@@ -69,6 +74,24 @@ namespace TempLat
           throw(RunParametersInconsistent("You have selected BunchDavisElectricU1 for the U(1) field, but this "
                                           "option is only included for models with Axion-U(1) couplings."));
         initializeBunchDavisElectricU1(model, extps, rPar.kCutoff, extraFlds);
+      } else if (flagU1IC == InitialConditionsType::U1::BunchDavisAxionConstrainedU1) {
+        if (!Model::IsAxionU1Coupled)
+          throw(RunParametersInconsistent("You have selected BunchDavisAxionConstrainedU1 for the U(1) field, but "
+                                          "this option is only included for models with Axion-U(1) couplings."));
+        if (model.tNonLinearAxionU1 >= 0)
+          throw(RunParametersInconsistent("BunchDavisAxionConstrainedU1 requires tNonLinearAxionU1 < 0 because "
+                                          "spatial axion fluctuations are incompatible with the simplified linear "
+                                          "axion-U(1) evolution stage."));
+        initializeBunchDavisAxionConstrainedU1(model, extps, rPar.kCutoff, extraFlds);
+      } else if (flagU1IC == InitialConditionsType::U1::HelicalGaussProjectedU1) {
+        if (!Model::IsAxionU1Coupled)
+          throw(RunParametersInconsistent("You have selected HelicalGaussProjectedU1 for the U(1) field, but this "
+                                          "option is only included for models with Axion-U(1) couplings."));
+        if (model.tNonLinearAxionU1 >= 0)
+          throw(RunParametersInconsistent("HelicalGaussProjectedU1 requires tNonLinearAxionU1 < 0 because spatial "
+                                          "axion fluctuations are incompatible with the simplified linear axion-U(1) "
+                                          "evolution stage."));
+        initializeHelicalGaussProjectedU1(model, extps, rPar.kCutoff, extraFlds);
       } else if (flagU1IC == InitialConditionsType::U1::DefectsNetwork)
         initializeStringNetwork(model, fg, rPar.lcorr);
       else if (flagU1IC == InitialConditionsType::U1::DefectsWhiteNoise)
@@ -142,6 +165,100 @@ namespace TempLat
     {
       initializeBunchDavisTransverseU1(model, extps, kCutOff, extraFlds);
       ForLoop(n, 0, Model::NU1 - 1, ForLoop(i, 1, Model::NDim, model.fldU1(n)(i) = 0;););
+    }
+
+    /** Initialize transverse Bunch-Davies gauge modes and add the unique longitudinal electric field which satisfies
+     * the full lattice Gauss law in the presence of axion fluctuations.  The residual is built from the exact source
+     * and backward divergence used by GaussLaws::checkU1; hence no continuum derivative convention enters the solve.
+     */
+    template <class Model, typename T>
+    static void initializeBunchDavisAxionConstrainedU1(Model &model, ExternalPowerSpectrumInitializer<T> &extps,
+                                                       T kCutOff, ExtraFields<Model> extraFlds)
+    {
+      initializeBunchDavisTransverseU1(model, extps, kCutOff, extraFlds);
+
+      projectU1GaussConstraint(model, extraFlds);
+    }
+
+    /** Generate a band-limited gauge field of one helicity, correlate E with B, and project E onto Gauss' surface. */
+    template <class Model, typename T>
+    static void initializeHelicalGaussProjectedU1(Model &model, ExternalPowerSpectrumInitializer<T> &extps,
+                                                  T kCutOff, ExtraFields<Model> extraFlds)
+    {
+      static_assert(Model::NDim == 3, "HelicalGaussProjectedU1 is implemented only in three spatial dimensions.");
+      initializeBunchDavisTransverseU1(model, extps, kCutOff, extraFlds);
+
+      FourierSite<Model::NDim> ntilde(model.getToolBox());
+      const size_t N = GetNGrid::get(model);
+      auto kL = MakeVector(i, 1, Model::NDim, sin(Constants::pi<T> / N * ntilde(i)));
+      auto kL2 = Total(i, 1, Model::NDim, pow<2>(kL(i)));
+      auto invKL2 = safeDivide(T(1), kL2);
+      auto invKL = safeDivide(T(1), sqrt(kL2));
+      auto extraPhaseMinus = MakeVector(i, 1, Model::NDim, complexPhase(-Constants::pi<T> / N * ntilde(i)));
+      auto extraPhase = MakeVector(i, 1, Model::NDim, complexPhase(Constants::pi<T> / N * ntilde(i)));
+      auto kNorm = ntilde.norm() * model.fldU1(0_c)(1_c).getKIR();
+      const T kMax = model.helicalGaugeKMax > 0 ? model.helicalGaugeKMax : kCutOff;
+      if (model.helicalGaugeKMin < 0 || kMax <= model.helicalGaugeKMin)
+        throw(RunParametersInconsistent("HelicalGaussProjectedU1 requires 0 <= helicalGaugeKMin < "
+                                        "helicalGaugeKMax (or kCutOff when helicalGaugeKMax <= 0)."));
+      auto band = heaviside(kNorm - model.helicalGaugeKMin) * heaviside(kMax - kNorm);
+      const T helicity = model.helicalGaugeSign >= 0 ? T(1) : T(-1);
+
+      auto projectedA = extraFlds.fldForPlaneWavesU1();
+      auto averagedB = extraFlds.piForPlaneWavesU1();
+
+      ForLoop(
+          n, 0, Model::NU1 - 1,
+          ForLoop(
+              i, 1, Model::NDim,
+              projectedA(i).inFourierSpace() =
+                  band *
+                  Total(j, 1, Model::NDim,
+                        (T(0.5) * ((i == j ? T(1) : T(0)) - kL(i) * kL(j) * invKL2) -
+                         Constants::I<T> * T(0.5) * helicity * invKL *
+                             Total(l, 1, Model::NDim, Symbols::epsilon(i, j, l) * kL(l))) *
+                            asFourier(extraPhaseMinus(j)) * model.fldU1(n)(j).inFourierSpace());
+              projectedA(i).inFourierSpace().setZeroMode(0););
+
+          ForLoop(i, 1, Model::NDim,
+                  model.fldU1(n)(i).inFourierSpace() =
+                      model.helicalGaugeAmplitude * asFourier(extraPhase(i)) * projectedA(i).inFourierSpace();
+                  model.fldU1(n)(i).inFourierSpace().setZeroMode(0););
+
+          // Store all components before overwriting piU1, because every B_i depends on two components of A.
+          ForLoop(i, 1, Model::NDim,
+                  averagedB(i) = magneticField4(magneticField(model.fldU1(n), i), i););
+          ForLoop(i, 1, Model::NDim,
+                  model.piU1(n)(i) = helicity * model.helicalElectricAmplitude * averagedB(i);););
+
+      projectU1GaussConstraint(model, extraFlds);
+    }
+
+    template <class Model>
+    static void projectU1GaussConstraint(Model &model, ExtraFields<Model> extraFlds)
+    {
+      using T = typename Model::FloatType;
+
+      FourierSite<Model::NDim> ntilde(model.getToolBox());
+      const size_t N = GetNGrid::get(model);
+      auto expIK = MakeVector(i, 1, Model::NDim, complexPhase(-2 * Constants::pi<T> / N * ntilde(i)));
+      auto keffm = MakeVector(i, 1, Model::NDim, 1_c - expIK(i));
+      auto keffm2 = Total(i, 1, Model::NDim, norm2(keffm(i)));
+
+      // The BD work field is no longer needed after the transverse initialization, so reuse one component for R.
+      auto residual = extraFlds.fldForPlaneWavesU1()(1_c);
+      ForLoop(
+          n, 0, Model::NU1 - 1,
+          residual = -model.dx * MatterCurrents::U1ChargeDensity(model, n) +
+                     AxionCouplings::ScalarAxionGaussLaw(model, n) -
+                     Total(i, 1, Model::NDim, model.piU1(n)(i) - shift(model.piU1(n)(i), -i)) / model.dx;
+
+          ForLoop(i, 1, Model::NDim,
+                  model.piU1(n)(i).inFourierSpace() =
+                      model.piU1(n)(i).inFourierSpace() +
+                      asFourier(model.dx * conj(keffm(i)) * (1 / keffm2)) * residual.inFourierSpace();
+                  // A periodic electric field cannot represent a net charge.  Do not hide an inconsistent source.
+                  model.piU1(n)(i).inFourierSpace().setZeroMode(0);););
     }
 
     template <class Model, typename T>

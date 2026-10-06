@@ -103,7 +103,9 @@ namespace TempLat
         if (flagU1IC == InitialConditionsType::U1::PlaneWaves ||
             flagU1IC == InitialConditionsType::U1::PlaneWavesZeroB ||
             flagU1IC == InitialConditionsType::U1::BunchDavisTransverseU1 ||
-            flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1) {
+            flagU1IC == InitialConditionsType::U1::BunchDavisElectricU1 ||
+            flagU1IC == InitialConditionsType::U1::BunchDavisAxionConstrainedU1 ||
+            flagU1IC == InitialConditionsType::U1::HelicalGaussProjectedU1) {
           if (allFlds1 == nullptr) {
             fldU1IC = std::make_shared<VectorField<Field<T, Model::NDim>>>("U1ICfldU1", model.getToolBox(),
                                                                            runPars.getLatParams());

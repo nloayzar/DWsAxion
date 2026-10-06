@@ -36,11 +36,22 @@ namespace TempLat
     ScalarU1AxionCouplings alphaLambda_SU1;
     // Time to switch from linear to non-linear evolution for AxionU1 coupling
     T tNonLinearAxionU1;
+    // Parameters for band-limited, single-helicity gauge initial conditions.
+    T helicalGaugeAmplitude;
+    T helicalElectricAmplitude;
+    T helicalGaugeKMin;
+    T helicalGaugeKMax;
+    T helicalGaugeSign;
 
   protected:
     ScalarU1AxionBase(ParameterParser &parser)
     {
       tNonLinearAxionU1 = parser.get<T>("tNonLinearAxionU1", -1);
+      helicalGaugeAmplitude = parser.get<T>("helicalGaugeAmplitude", 1);
+      helicalElectricAmplitude = parser.get<T>("helicalElectricAmplitude", 1);
+      helicalGaugeKMin = parser.get<T>("helicalGaugeKMin", 0);
+      helicalGaugeKMax = parser.get<T>("helicalGaugeKMax", -1);
+      helicalGaugeSign = parser.get<T>("helicalGaugeSign", 1);
       auto gAxionU1 = parser.get<T, ScalarU1AxionCouplings::nGauge>("gAxionU1", 1.0);
       auto AxionU1Charges = parser.get<T, ScalarU1AxionCouplings::howManyCouples()>("alphaLambda_AxionU1", 1);
       alphaLambda_SU1.setEffectiveCharges(AxionU1Charges, gAxionU1);

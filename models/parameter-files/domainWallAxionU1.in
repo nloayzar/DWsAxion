@@ -1,7 +1,7 @@
 #Output
-outputfile = ./
+outputfile = ./test/
 print_headers = true
-overwriteFiles = false
+overwriteFiles = true
 
 #Evolution
 expansion = true
@@ -18,8 +18,8 @@ lSide = 32
 tOutputFreq = 1
 tOutputInfreq = 1
 tOutputRareFreq = 1
-t0 = 70
-tMax = 102
+t0 = 1
+tMax = 4
 
 #Spectra options
 PS_type = 1
@@ -36,15 +36,15 @@ measureDefectsEnergies = true
 
 #IC
 ICtype_S = DefectsNetwork
-ICtype_U1 = BunchDavisElectricU1
+ICtype_U1 =  BunchDavisAxionConstrainedU1
 lcorr = 4
-kCutOff = 30
+kCutOff = 4
 initial_amplitudes = 0
 initial_momenta = 0
 
 #Diffusion
 doDiffusion = true
-tmaxdiff = 10
+tmaxdiff = 1
 diffusionevolver = RK2
 dtdiff = 0.005
 tOutputFreqDiff = 1
@@ -52,12 +52,12 @@ tOutputFreqDiff = 1
 #ResolutionPreserving
 doResolutionPreserving = true
 sRP = -1
-tRP0 = 70
+tRP0 = 2
 
 #Axion U1 coupling
 alphaLambda_AxionU1 = 13
 tNonLinearAxionU1 = -1
-initial_E_amplitude = 1
+initial_E_amplitude = 10
 
 #Model Parameters
 lambda = 1
