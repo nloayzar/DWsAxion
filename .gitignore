@@ -13,6 +13,8 @@ CLAUDE.md
 */.DS_Store
 */*/.DS_Store
 
+*.in
+
 # Editor swap files
 *.kate-swp
 *.swp
