@@ -30,6 +30,8 @@ namespace TempLat
     FloatType lambda, vev, initialElectricAmplitude;
 
   public:
+    static constexpr const char *scalarConfigurationFamily = "quartic_double_well_v1";
+    static std::vector<std::string> scalarConfigurationParameters() { return {"lambda", "vev", "qbias"}; }
     static constexpr bool AllowDefectFormationIC = true;
     FloatType g = 0.;
     static constexpr size_t NDim = Model<MODELNAME>::NDim;
@@ -48,6 +50,8 @@ namespace TempLat
               device::memory::host_ptr<MemoryToolBox<NDim>> toolBox)
         : Model<MODELNAME>(parser, runPar.getLatParams(), toolBox, runPar.dt, STRINGIFY(MODELLABEL))
     {
+      if (parser.get<FloatType>("qbias", 0.)() != 0.)
+        throw(RunParametersInconsistent("Use domainWallBiasAxionU1 for a nonzero qbias."));
       lambda = parser.get<FloatType>("lambda", 1.);
       vev = parser.get<FloatType>("vev", 1.);
       initialElectricAmplitude = parser.get<FloatType>("initial_E_amplitude", 1.);

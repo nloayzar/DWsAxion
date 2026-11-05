@@ -1,0 +1,55 @@
+# Build MODEL=defects_ONGlobal with HDF5=ON. Run from the repository root.
+# Create output directories first; see docs/scalar-configurations.md.
+outputfile = ./output/wall_prepare/
+print_headers = true
+overwriteFiles = false
+baseSeed = 314159
+
+# Physical scalar dynamics in a prescribed radiation background.
+lambda = 1
+# 1e-3 of the reduced Planck mass, in GeV.
+vev = 2.435e15
+qbias = 0
+expansion = true
+fixedBackground = true
+omegaEoS = 0.333333333333333333
+H0 = 0
+t0 = 40
+tMax = 80
+evolver = LF
+dt = 0.025
+
+# Production-sized candidate: dx=0.25; a grows from 1 to 2.
+# The box size and wall resolution must also cover the follow-up evolution.
+N = 1024
+lSide = 256
+ICtype_S = DefectsNetwork
+# Start with domains closer to the horizon scale to shorten density relaxation.
+# Vary lcorr and the random seed to check loss of initial-condition dependence.
+lcorr = 8
+doDiffusion = true
+tmaxdiff = 3
+dtdiff = 0.005
+diffusionevolver = RK2
+tOutputFreqDiff = 1
+tOutputRareFreqDiff = 1000
+doResolutionPreserving = false
+
+withGWs = false
+measureDefectsStructure = true
+measureDefectsEnergies = true
+tOutputFreq = 0.5
+tOutputInfreq = 10
+tOutputRareFreq = 1000
+tOutputVerb = 2
+PS_type = 1
+PS_version = 1
+
+# Synchronized phi and canonical momentum, plus scalar/background metadata.
+# Normalized output: a=1, t=0, L=512, H/omegaStar=1/160.
+# The simulation and its time-series outputs keep their original normalization.
+scalar_snapshot_file = ./output/wall_prepare/network.h5
+scalar_snapshot_normalize_a = true
+
+# This produces a CANDIDATE scaling snapshot, not an automatic certification.
+# Check a plateau of eta*A_com/L^3 and stable wall velocities before reuse.

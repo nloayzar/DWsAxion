@@ -30,6 +30,8 @@ namespace TempLat
     FloatType lambda, vev, initialElectricAmplitude;
 
   public:
+    static constexpr const char *scalarConfigurationFamily = "quartic_double_well_v1";
+    static std::vector<std::string> scalarConfigurationParameters() { return {"lambda", "vev", "qbias"}; }
     static constexpr bool AllowDefectFormationIC = true;
     FloatType g;
     static constexpr size_t NDim = Model<MODELNAME>::NDim;

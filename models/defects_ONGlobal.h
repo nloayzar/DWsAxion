@@ -48,6 +48,8 @@ namespace TempLat
     // to force you using them only within your model and not outside.
 
   public:
+    static constexpr const char *scalarConfigurationFamily = "quartic_double_well_v1";
+    static std::vector<std::string> scalarConfigurationParameters() { return {"lambda", "vev", "qbias"}; }
     FloatType g;
     static constexpr size_t NDim = Model<MODELNAME>::NDim;
 

@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
   // @endlabel
 
   // @label:main_simmanager
+  ScalarConfiguration::prepare<ModelType>(parser);
   SimulationManager<ModelType::NDim> manager(parser);
   // The SimulationManager takes care of saving the simulations at the end,
   // backing up or restarting simulations, when appropriate options are passed.
@@ -59,8 +60,7 @@ int main(int argc, char *argv[])
   // @endlabel
 
   // @label:main_runparams
-  RunParameters<FloatType> runParams(parser);
-  runParams.setDoWeRestart(manager.doWeRestart());
+  RunParameters<FloatType> runParams(parser, manager.doWeRestart());
   // The RunParameters class holds all relevant (model independent)
   // parameters for a run: Num. of points lattice/side (N),
   // the lattice length side (L) or alternatively the lattice IR cut-off (kIR),
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     initializer.initialize(model, runParams, measurer.getFilesManager(), extraFlds);
     // 2) We initialize the model.
 
-    t = runParams.t0;
+    t = runParams.scalarICFile.empty() ? runParams.t0 : runParams.scalarICTime;
     // 3) We set the initial time as specified in the input parameter file.
     // By default it is zero.
 
@@ -217,6 +217,11 @@ int main(int argc, char *argv[])
     manager.saveSim(parser, model, t,
                     runParams.saveEndPath + model.name + "_DATE_" + mt.date() + "_TIME_" + mt.time() + ".h5");
     // This saves the simulation details, stamping the date and time in the name
+  }
+
+  if (!runParams.scalarSnapshotFile.empty()) {
+    evolver.sync(model, t - runParams.t0);
+    ScalarConfiguration::save(model, runParams, parser, t);
   }
 
   manager.closeInfoFile(toolBox->getNProcesses());

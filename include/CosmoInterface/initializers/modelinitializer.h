@@ -8,6 +8,7 @@
 // File info: Main contributor(s): Daniel G. Figueroa, Adrien Florio, Francisco Torrenti,  Year: 2020
 
 #include "CosmoInterface/initializers/fluctuationsgenerator.h"
+#include "CosmoInterface/initializers/scalarconfiguration.h"
 #include "CosmoInterface/initializers/externalpowerspectruminitializer.h"
 #include "CosmoInterface/initializers/scalefactorinitializer.h"
 #include "CosmoInterface/initializers/scalarsingletinitializer.h"
@@ -52,7 +53,8 @@ namespace TempLat
       if (rPar.expansion) ScaleFactorInitializer::initializeScaleFactor(model, rPar);
 
       // Initialize scalar singlets:
-      if constexpr (Model::Ns > 0) ScalarSingletInitializer::initializeScalars(model, fg, extps, rPar);
+      if (!rPar.scalarICFile.empty()) ScalarConfiguration::load(model, rPar);
+      else if constexpr (Model::Ns > 0) ScalarSingletInitializer::initializeScalars(model, fg, extps, rPar);
 
       // Initialize GWs:
       if (model.fldGWs != nullptr) GWsInitializer::initializeGWs(model);

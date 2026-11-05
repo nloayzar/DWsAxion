@@ -1,0 +1,48 @@
+# Build MODEL=domainWallAxionU1 with HDF5=ON. Run from repository root.
+# This model treats the wall scalar as the axion coupled to a U(1) gauge field.
+# It does not add a second scalar axion.
+outputfile = ./output/wall_axionU1/
+print_headers = true
+overwriteFiles = false
+baseSeed = 271828
+
+ICtype_S = ExternalHDF5
+scalar_ic_file = ./output/wall_prepare/network.h5
+doDiffusion = false
+# N, L, scalar potential, units, original clock/background, and fattening settings
+# are inherited. Conflicting values are rejected. Do not repeat them here.
+
+# In the normalized snapshot's clock: t=0 at import, a=1 initially.
+# This duration corresponds to eta=80 -> 120 in the preparation normalization.
+tMax = 80
+dt = 0.05
+evolver = RK3_3
+
+# Nonzero transverse electric seed, initially B=0, satisfies the axion Gauss law.
+# The amplitude and coupling below define an illustrative experiment, not a fit.
+ICtype_U1 = BunchDavisElectricU1
+initial_E_amplitude = 0.001
+kCutOff = 2
+# alphaLambda * fStar/MPl = 13 for the preparation's vev; vary this coupling.
+alphaLambda_AxionU1 = 13000
+gAxionU1 = 1
+tNonLinearAxionU1 = -1
+initial_amplitudes = 0
+initial_momenta = 0
+
+withGWs = false
+measureDefectsStructure = true
+measureDefectsEnergies = true
+flagChiralPS = true
+tOutputFreq = 0.25
+tOutputInfreq = 2
+tOutputRareFreq = 1000
+tOutputVerb = 1
+PS_type = 1
+PS_version = 1
+
+# Native restart retains BOTH scalar and gauge fields for continuing this run.
+save_dir = ./output/wall_axionU1/
+# Optional scalar-only export; not a replacement for the native coupled restart.
+scalar_snapshot_file = ./output/wall_axionU1/scalar_final.h5
+scalar_snapshot_normalize_a = true

@@ -20,3 +20,7 @@ CLAUDE.md
 *.swp
 *.swo
 *~
+
+# Reproducible scalar-network preparation and axion-U(1) continuation examples.
+!models/parameter-files/domainWall_prepare_scalar.in
+!models/parameter-files/domainWall_from_scalar_axionU1.in

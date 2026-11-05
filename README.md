@@ -115,3 +115,9 @@ All custom CMake flags can be passed when configuring the project, e.g. `cmake -
 | `TEMPLAT_BRANCH`      | TempLat branch or tag to use (for devs) | `v1.0.0`                                      |
 
 `PARAFAFT` requires `MPI=ON`; if it is requested without MPI, TempLat warns and disables it.
+
+### Reusable domain-wall configurations
+
+See [scalar configuration initialization](docs/scalar-configurations.md) for a two-stage
+wall-network preparation and axion–U(1) simulation, including synchronized HDF5
+export/import and optional normalization to a final scale factor of one.

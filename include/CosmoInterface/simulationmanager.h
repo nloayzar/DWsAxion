@@ -69,7 +69,20 @@ namespace TempLat
     template <typename T, class Model> void loadSim(Model &model, T &t0)
     {
 #ifdef HAVE_HDF5
+      // New checkpoints preserve the effective potential used during wall fattening.
+      // Legacy physical-dynamics checkpoints remain readable; fattened ones are ambiguous.
+      HDF5File stateFile;
+      stateFile.open(restart, ReadOnly);
+      const bool hasResolutionFactor = H5Lexists(stateFile.getHandle(), "resolutionPreservingFactor", H5P_DEFAULT) > 0;
+      stateFile.close();
       fIO.loader.open(restart);
+      if (hasResolutionFactor) fIO.loader.load(model.resolutionPreservingFactor, "resolutionPreservingFactor");
+      else {
+        ParameterParser saved(0, nullptr);
+        fIO.loader.load(saved);
+        if (saved.get<bool>("doResolutionPreserving", false)())
+          throw(FileIOException("Legacy checkpoint lacks resolutionPreservingFactor; cannot safely restart fattened walls."));
+      }
 
       ForLoop(i, 0, Model::Ns - 1, fIO.load(model.fldS(i)); fIO.load(model.piS(i)););
 
@@ -128,6 +141,7 @@ namespace TempLat
       fIO.saver.save(model.aDotI, "aDotI");
       fIO.saver.save(model.aDotSIM, "aDotSIM");
 
+      fIO.saver.save(model.resolutionPreservingFactor, "resolutionPreservingFactor");
       fIO.saver.save(time, "tSave");
 
       fIO.saver.save(parser);

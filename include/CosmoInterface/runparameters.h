@@ -7,6 +7,7 @@
 
 // File info: Main contributor(s): Daniel G. Figueroa, Adrien Florio, Francisco Torrenti,  Year: 2019
 
+#include <cmath>
 #include "TempLat/parameters/parameterparser.h"
 #include "TempLat/util/constants.h"
 #include "TempLat/lattice/latticeparameters.h"
@@ -56,8 +57,14 @@ namespace TempLat
       return par.get<std::string, 15>("snapshots", std::vector<std::string>(15, Constants::defaultString));
     }
 
+    static std::string optionalPath(ParameterParser &par, const std::string &key)
+    {
+      const auto value = par.get<std::string>(key, Constants::defaultString)();
+      return value == Constants::defaultString ? std::string() : value;
+    }
+
     // List of run parameters and their default values:
-    RunParameters(ParameterParser &par)
+    RunParameters(ParameterParser &par, bool restarting = false)
         : N(par.getOverride<ptrdiff_t>("N", Important)),     // Number of lattice points per dimension
           kIR(par.getOverride<T>("kIR", -1, Important)),     // IR cutoff
           lSide(par.getOverride<T>("lSide", -1, Important)), // Side length
@@ -69,6 +76,9 @@ namespace TempLat
           tMax(par.get<T>("tMax", 10000 * dt, Important)), // Final time
           kCutoff(par.get<T>("kCutOff", -1.0,
                              Important)), // Momenta cutoff in spectra of initial fluctuations. -1 means no cutoff.
+          scalarICFile(optionalPath(par, "scalar_ic_file")),
+          scalarSnapshotFile(optionalPath(par, "scalar_snapshot_file")),
+          scalarICTime(par.get<double>("scalar_ic_time", t0)),
           SIC(par.get<InitialConditionsType::S>("ICtype_S", InitialConditionsType::S::Default)),
           U1IC(par.get<InitialConditionsType::U1>("ICtype_U1", InitialConditionsType::U1::Default)),
           tOutFreq(par.get<T>("tOutputFreq", 10 * dt, Important)),      // Printing time interval of frequent output
@@ -114,7 +124,7 @@ namespace TempLat
           fnVerbosity(par.get<int>(
               "fn_verbosity",
               0)),            // Different verbosity in the output filename. By default, no info about model or params.
-          doWeRestart(false), // Boolean which tells if we are runing in restart mode or not. Set in the main.
+          doWeRestart(restarting), // Full restart bypasses initial-condition validation.
           tolerance(par.get<T>("tolerance", -1)), // For adaptative solvers only
           powerSpectrumType(par.get<int>("PS_type", 1)), powerSpectrumVersion(par.get<int>("PS_version", 1)),
           withGWs(par.get<bool>("withGWs", false, Important)),
@@ -184,6 +194,17 @@ namespace TempLat
         if (!hasLSide) par.erase("lSide");
         if (!hasDx) par.erase("dx");
       }
+
+      if (!restarting && ((SIC == InitialConditionsType::S::ExternalHDF5) != !scalarICFile.empty()))
+        throw(RunParametersInconsistent("ExternalHDF5 requires scalar_ic_file and vice versa."));
+      if (!scalarICFile.empty() && (doDiffusion || !std::isfinite(scalarICTime) ||
+          (scalarICTime < t0 && !AlmostEqual(scalarICTime, t0, runParameterTolerance)) ||
+          (tMax < scalarICTime && !AlmostEqual(tMax, scalarICTime, runParameterTolerance))))
+        throw(RunParametersInconsistent("Scalar import requires no diffusion and t0 <= snapshot time <= tMax."));
+      if ((!scalarICFile.empty() || !scalarSnapshotFile.empty()) && expansion && !fixedBackground)
+        throw(RunParametersInconsistent("Scalar configurations require a fixed background or expansion=false."));
+      if (!scalarSnapshotFile.empty() && par.get<bool>("scalar_snapshot_normalize_a", false)() && doResolutionPreserving)
+        throw(RunParametersInconsistent("scalar_snapshot_normalize_a requires doResolutionPreserving=false."));
 
       if (appendMode && overwriteMode)
         throw(RunParametersInconsistent("'appendToFiles' and 'overwriteFiles' cannot both be true. Pick one."));
@@ -261,6 +282,8 @@ namespace TempLat
     const T t0;
     const T tMax;
     T kCutoff;
+    const std::string scalarICFile, scalarSnapshotFile;
+    const double scalarICTime;
     const InitialConditionsType::S SIC;
     const InitialConditionsType::U1 U1IC;
     const T tOutFreq;
@@ -336,7 +359,7 @@ namespace TempLat
     bool measureDefectsEnergies;
     bool measureDefectsStructure;
 
-    LatticeParameters<T> getLatParams() { return LatticeParameters<T>(dx, lSide, kIR); }
+    LatticeParameters<T> getLatParams() const { return LatticeParameters<T>(dx, lSide, kIR); }
 
     std::string extraInfoFn() const
     {

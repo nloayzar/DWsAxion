@@ -22,7 +22,7 @@ namespace TempLat
 
   namespace InitialConditionsType
   {
-    enum class S { Default, RandomWithMatter, DefectsNetwork, DefectsWhiteNoise, Homogeneous };
+    enum class S { Default, RandomWithMatter, DefectsNetwork, DefectsWhiteNoise, Homogeneous, ExternalHDF5 };
     enum class U1 {
       Default,
       RandomWithMatter,
@@ -48,6 +48,8 @@ namespace TempLat
         ICType = InitialConditionsType::S::DefectsNetwork;
       else if (tmp == "DefectsWhiteNoise" || tmp == "3")
         ICType = InitialConditionsType::S::DefectsWhiteNoise;
+      else if (tmp == "ExternalHDF5")
+        ICType = InitialConditionsType::S::ExternalHDF5;
       else if (tmp == "Homogeneous" || tmp == "4")
         ICType = InitialConditionsType::S::Homogeneous;
       else if (tmp.empty()) {
@@ -96,6 +98,8 @@ namespace TempLat
         return out << "DefectsNetwork";
       else if (ICType == InitialConditionsType::S::DefectsWhiteNoise)
         return out << "DefectsWhiteNoise";
+      else if (ICType == InitialConditionsType::S::ExternalHDF5)
+        return out << "ExternalHDF5";
       else if (ICType == InitialConditionsType::S::Homogeneous)
         return out << "Homogeneous";
       return out;
@@ -136,6 +140,8 @@ namespace TempLat
         return "DefectsNetwork";
       else if (ICType == InitialConditionsType::S::DefectsWhiteNoise)
         return "DefectsWhiteNoise";
+      else if (ICType == InitialConditionsType::S::ExternalHDF5)
+        return "ExternalHDF5";
       else if (ICType == InitialConditionsType::S::Homogeneous)
         return "Homogeneous";
       else

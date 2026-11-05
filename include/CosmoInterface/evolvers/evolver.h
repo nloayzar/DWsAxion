@@ -131,7 +131,7 @@ namespace TempLat
     // @label:gws_evolver_sync
     inline void sync(Model &model, T tMinust0) const
     {
-      if (typeGW == LF && !GWsynced) {
+      if (model.fldGWs != nullptr && typeGW == LF && !GWsynced) {
         lf->kickGWs(model, 0.5);
         GWsynced = true;
       }
